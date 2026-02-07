@@ -1,13 +1,23 @@
-# Lunch Offer Menu - Flask Web Application
+# Lunch Offer Menu - Flask Web Application with Database
 
-A simple Flask web application for learning Python and web development concepts.
+A Flask web application that saves orders to a database and displays order history.
 
 ## What You'll Learn
 
 - **Python**: Variables, dictionaries, lists, functions, conditional logic
 - **Flask**: Routes, templates, forms, request handling
+- **Database**: SQLAlchemy ORM, PostgreSQL, data persistence
 - **HTML**: Structure, forms, semantic markup
 - **CSS**: Styling, layouts, responsive design
+
+## Features
+
+- ✅ Interactive menu selection
+- ✅ Lunch offer calculation (£5 for sandwich + crisps + snack)
+- ✅ Premium items exclusion
+- ✅ **Database storage** - all orders are saved
+- ✅ **Order history** - view all past orders with statistics
+- ✅ Local development (SQLite) and production (PostgreSQL) support
 
 ## Project Structure
 
@@ -24,27 +34,29 @@ lunch-menu/
 
 ## Setup Instructions
 
-### 1. Install Flask
+### 1. Install Dependencies
 
-First, you need to install Flask. Open your terminal and run:
+Install Flask and database packages:
 
 ```bash
-pip install flask
+pip install -r requirements.txt
 ```
 
-### 2. Run the Application
+This installs:
+- Flask (web framework)
+- Flask-SQLAlchemy (database toolkit)
+- psycopg2-binary (PostgreSQL driver)
+- gunicorn (production server)
 
-Navigate to the folder containing `app.py` and run:
+### 2. Local Development (SQLite)
+
+For local testing, the app automatically uses SQLite (no setup needed):
 
 ```bash
 python app.py
 ```
 
-You should see output like:
-```
- * Running on http://0.0.0.0:5000
- * Running on http://127.0.0.1:5000
-```
+A file called `orders.db` will be created automatically to store your orders locally.
 
 ### 3. Open in Browser
 
@@ -59,6 +71,39 @@ or
 http://localhost:5000
 ```
 
+## Database Setup for Production (Render)
+
+### 1. Create PostgreSQL Database on Render
+
+1. Go to [Render Dashboard](https://dashboard.render.com/)
+2. Click **New +** → **PostgreSQL**
+3. Configure:
+   - Name: `lunch-menu-db`
+   - Database: `lunch_orders` (or any name)
+   - User: (auto-generated)
+   - Region: Choose closest to you
+   - Instance Type: **Free**
+4. Click **Create Database**
+5. Wait for it to be created (takes ~1 minute)
+
+### 2. Connect Database to Web Service
+
+1. Go to your web service on Render
+2. Click **Environment** in the left menu
+3. Click **Add Environment Variable**
+4. Add:
+   - Key: `DATABASE_URL`
+   - Value: Copy the **Internal Database URL** from your PostgreSQL database page
+5. Click **Save Changes**
+
+Your app will automatically restart and connect to PostgreSQL!
+
+### 3. How it Works
+
+- **Local development**: Uses SQLite (`orders.db` file)
+- **Production (Render)**: Uses PostgreSQL (cloud database)
+- The app automatically detects which to use based on the `DATABASE_URL` environment variable
+
 ## How It Works
 
 ### Flask App (app.py)
@@ -67,12 +112,14 @@ http://localhost:5000
 2. **Routes**: 
    - `/` - Shows the menu selection page
    - `/calculate` - Processes the form and shows results
-3. **Logic**: Checks if sandwich is premium and calculates total
+   - `/history` - Displays all past orders from database
+3. **Database**: Saves every order with all details and timestamps
 
 ### Templates
 
 - **index.html**: Form with radio buttons for menu selections
 - **result.html**: Displays order summary and total price
+- **history.html**: Shows all orders with statistics (total revenue, savings, etc.)
 
 ### The Flow
 
@@ -81,7 +128,9 @@ http://localhost:5000
 3. Clicks "Calculate My Order"
 4. Form submits to `/calculate` route
 5. Python checks eligibility and calculates total
-6. Results page displays order summary
+6. **Order is saved to database**
+7. Results page displays order summary with order ID
+8. User can view `/history` to see all past orders
 
 ## Experimenting & Learning
 

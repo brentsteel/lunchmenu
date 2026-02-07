@@ -148,6 +148,7 @@
 <body>
     <div class="container">
         <h1>📋 Order Summary</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 20px;">Order #{{ order_id }}</p>
         
         <!-- Show success or warning message based on offer eligibility -->
         {% if qualifies %}
@@ -195,6 +196,7 @@
         <!-- Action buttons -->
         <div class="buttons">
             <a href="/" class="btn btn-primary">New Order</a>
+            <a href="/history" class="btn btn-secondary">View History</a>
         </div>
     </div>
 </body>
