@@ -1,4 +1,4 @@
 Flask==3.1.2
 gunicorn==21.2.0
 Flask-SQLAlchemy==3.1.1
-psycopg[binary]
+pg8000==1.31.2
