@@ -1,0 +1,32 @@
+Flask==3.1.2
+gunicorn==21.2.0
+```
+
+This tells Render which Python packages to install. Gunicorn is a production web server (better than Flask's built-in development server).
+
+**Step 2: Create a .gitignore file**
+
+Create a file called `.gitignore` (note the dot at the start) and add:
+```
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Flask
+instance/
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
