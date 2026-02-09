@@ -1,12 +1,13 @@
 """
-Flask Web Application for Lunch Offer Menu - WITH DATABASE AND ADMIN PANEL
-This version includes an admin panel to manage menu items
+Flask Web Application for Lunch Offer Menu - WITH DATABASE, ADMIN PANEL, AND ANALYTICS
+This version includes sales analytics with charts
 """
 
-from flask import Flask, render_template, request, session, redirect, url_for, flash
+from flask import Flask, render_template, request, session, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
+from collections import defaultdict
 import secrets
 import os
 
@@ -16,7 +17,7 @@ app.secret_key = secrets.token_hex(16)
 
 # ADMIN PASSWORD - Change this to your own secure password!
 # In production, you should use environment variables
-ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'Sandwich123')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
 
 # DATABASE CONFIGURATION
 if os.environ.get('DATABASE_URL'):
@@ -232,6 +233,115 @@ def history():
                          total_revenue=total_revenue,
                          total_savings=total_savings,
                          offers_applied=offers_applied)
+
+
+# ANALYTICS ROUTES
+@app.route('/analytics')
+@admin_required
+def analytics():
+    """Sales analytics dashboard with charts"""
+    # Get date range for last 30 days
+    end_date = datetime.utcnow()
+    start_date = end_date - timedelta(days=30)
+    
+    # Get all orders
+    all_orders = Order.query.all()
+    recent_orders = Order.query.filter(Order.order_date >= start_date).all()
+    
+    # Calculate overall stats
+    total_orders = len(all_orders)
+    total_revenue = sum(order.total_price for order in all_orders)
+    total_savings = sum(order.savings for order in all_orders)
+    avg_order_value = total_revenue / total_orders if total_orders > 0 else 0
+    
+    return render_template('analytics.html',
+                         total_orders=total_orders,
+                         total_revenue=total_revenue,
+                         total_savings=total_savings,
+                         avg_order_value=avg_order_value)
+
+
+@app.route('/api/analytics/daily-sales')
+@admin_required
+def api_daily_sales():
+    """API endpoint for daily sales data"""
+    days = int(request.args.get('days', 30))
+    end_date = datetime.utcnow()
+    start_date = end_date - timedelta(days=days)
+    
+    orders = Order.query.filter(Order.order_date >= start_date).all()
+    
+    # Group by date
+    daily_sales = defaultdict(float)
+    daily_orders = defaultdict(int)
+    
+    for order in orders:
+        date_key = order.order_date.strftime('%Y-%m-%d')
+        daily_sales[date_key] += order.total_price
+        daily_orders[date_key] += 1
+    
+    # Create sorted lists
+    dates = sorted(daily_sales.keys())
+    sales = [daily_sales[date] for date in dates]
+    order_counts = [daily_orders[date] for date in dates]
+    
+    return jsonify({
+        'dates': dates,
+        'sales': sales,
+        'orders': order_counts
+    })
+
+
+@app.route('/api/analytics/top-items')
+@admin_required
+def api_top_items():
+    """API endpoint for top selling items by category"""
+    all_orders = Order.query.all()
+    
+    # Count items
+    sandwich_counts = defaultdict(int)
+    crisps_counts = defaultdict(int)
+    snack_counts = defaultdict(int)
+    
+    for order in all_orders:
+        sandwich_counts[order.sandwich] += 1
+        crisps_counts[order.crisps] += 1
+        snack_counts[order.snack] += 1
+    
+    # Get top 5 in each category
+    top_sandwiches = sorted(sandwich_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+    top_crisps = sorted(crisps_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+    top_snacks = sorted(snack_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+    
+    return jsonify({
+        'sandwiches': {
+            'labels': [item[0] for item in top_sandwiches],
+            'data': [item[1] for item in top_sandwiches]
+        },
+        'crisps': {
+            'labels': [item[0] for item in top_crisps],
+            'data': [item[1] for item in top_crisps]
+        },
+        'snacks': {
+            'labels': [item[0] for item in top_snacks],
+            'data': [item[1] for item in top_snacks]
+        }
+    })
+
+
+@app.route('/api/analytics/offer-stats')
+@admin_required
+def api_offer_stats():
+    """API endpoint for offer vs regular pricing stats"""
+    all_orders = Order.query.all()
+    
+    offer_count = sum(1 for order in all_orders if order.offer_applied)
+    regular_count = len(all_orders) - offer_count
+    
+    return jsonify({
+        'labels': ['Lunch Offer Applied', 'Regular Pricing'],
+        'data': [offer_count, regular_count]
+    })
 
 
 # ADMIN ROUTES
