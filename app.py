@@ -1,6 +1,6 @@
 """
-Flask Web Application for Lunch Offer Menu - WITH DATABASE, ADMIN PANEL, AND ANALYTICS
-This version includes sales analytics with charts
+Flask Web Application for Lunch Offer Menu - PROFESSIONAL WEBSITE
+Multi-page website with homepage, menu, locations, about, and admin features
 """
 
 from flask import Flask, render_template, request, session, redirect, url_for, flash, jsonify
@@ -15,9 +15,10 @@ import os
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 
-# ADMIN PASSWORD - Change this to your own secure password!
-# In production, you should use environment variables
+# CONFIGURATION
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
+BUSINESS_NAME = "Fresh Bites Café"
+BUSINESS_TAGLINE = "Delicious Lunch Deals, Every Day"
 
 # DATABASE CONFIGURATION
 if os.environ.get('DATABASE_URL'):
@@ -59,7 +60,7 @@ class MenuItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
     price = db.Column(db.Float, nullable=False)
-    category = db.Column(db.String(50), nullable=False)  # sandwich, crisps, snack
+    category = db.Column(db.String(50), nullable=False)
     is_premium = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
     created_date = db.Column(db.DateTime, default=datetime.utcnow)
@@ -152,16 +153,58 @@ def admin_required(f):
     return decorated_function
 
 
-# ROUTES
+# PUBLIC ROUTES
 @app.route('/')
-def index():
-    """Home page - display the menu selection form"""
+def home():
+    """Homepage"""
+    return render_template('home.html', business_name=BUSINESS_NAME, tagline=BUSINESS_TAGLINE)
+
+
+@app.route('/menu')
+def menu():
+    """Menu page - display the menu selection form"""
     sandwiches, crisps, snacks, premium_sandwiches = get_menu_items()
-    return render_template('index.html', 
+    return render_template('menu.html', 
                          sandwiches=sandwiches,
                          crisps=crisps,
                          snacks=snacks,
-                         premium_sandwiches=premium_sandwiches)
+                         premium_sandwiches=premium_sandwiches,
+                         business_name=BUSINESS_NAME)
+
+
+@app.route('/locations')
+def locations():
+    """Locations page"""
+    # You can customize these locations
+    store_locations = [
+        {
+            'name': 'City Centre',
+            'address': '123 High Street, London, EC1A 1BB',
+            'phone': '020 1234 5678',
+            'hours': 'Mon-Fri: 7am-6pm, Sat: 8am-4pm, Sun: Closed'
+        },
+        {
+            'name': 'Riverside',
+            'address': '45 River Walk, London, SE1 9PP',
+            'phone': '020 8765 4321',
+            'hours': 'Mon-Fri: 7am-6pm, Sat: 8am-4pm, Sun: Closed'
+        },
+        {
+            'name': 'Business District',
+            'address': '78 Corporate Plaza, London, EC2M 7PP',
+            'phone': '020 5555 6789',
+            'hours': 'Mon-Fri: 6:30am-7pm, Sat-Sun: Closed'
+        }
+    ]
+    return render_template('locations.html', 
+                         locations=store_locations,
+                         business_name=BUSINESS_NAME)
+
+
+@app.route('/about')
+def about():
+    """About page"""
+    return render_template('about.html', business_name=BUSINESS_NAME)
 
 
 @app.route('/calculate', methods=['POST'])
@@ -174,11 +217,12 @@ def calculate():
     sandwiches, crisps, snacks, premium_sandwiches = get_menu_items()
     
     if not sandwich_choice or not crisp_choice or not snack_choice:
-        return render_template('index.html',
+        return render_template('menu.html',
                              sandwiches=sandwiches,
                              crisps=crisps,
                              snacks=snacks,
                              premium_sandwiches=premium_sandwiches,
+                             business_name=BUSINESS_NAME,
                              error="Please select one item from each category")
     
     qualifies = check_offer_eligibility(sandwich_choice)
@@ -214,7 +258,8 @@ def calculate():
                          sandwich_price=sandwiches[sandwich_choice],
                          crisp_price=crisps[crisp_choice],
                          snack_price=snacks[snack_choice],
-                         order_id=new_order.id)
+                         order_id=new_order.id,
+                         business_name=BUSINESS_NAME)
 
 
 @app.route('/history')
@@ -232,7 +277,8 @@ def history():
                          total_orders=total_orders,
                          total_revenue=total_revenue,
                          total_savings=total_savings,
-                         offers_applied=offers_applied)
+                         offers_applied=offers_applied,
+                         business_name=BUSINESS_NAME)
 
 
 # ANALYTICS ROUTES
@@ -240,15 +286,12 @@ def history():
 @admin_required
 def analytics():
     """Sales analytics dashboard with charts"""
-    # Get date range for last 30 days
     end_date = datetime.utcnow()
     start_date = end_date - timedelta(days=30)
     
-    # Get all orders
     all_orders = Order.query.all()
     recent_orders = Order.query.filter(Order.order_date >= start_date).all()
     
-    # Calculate overall stats
     total_orders = len(all_orders)
     total_revenue = sum(order.total_price for order in all_orders)
     total_savings = sum(order.savings for order in all_orders)
@@ -258,7 +301,8 @@ def analytics():
                          total_orders=total_orders,
                          total_revenue=total_revenue,
                          total_savings=total_savings,
-                         avg_order_value=avg_order_value)
+                         avg_order_value=avg_order_value,
+                         business_name=BUSINESS_NAME)
 
 
 @app.route('/api/analytics/daily-sales')
@@ -271,7 +315,6 @@ def api_daily_sales():
     
     orders = Order.query.filter(Order.order_date >= start_date).all()
     
-    # Group by date
     daily_sales = defaultdict(float)
     daily_orders = defaultdict(int)
     
@@ -280,7 +323,6 @@ def api_daily_sales():
         daily_sales[date_key] += order.total_price
         daily_orders[date_key] += 1
     
-    # Create sorted lists
     dates = sorted(daily_sales.keys())
     sales = [daily_sales[date] for date in dates]
     order_counts = [daily_orders[date] for date in dates]
@@ -298,7 +340,6 @@ def api_top_items():
     """API endpoint for top selling items by category"""
     all_orders = Order.query.all()
     
-    # Count items
     sandwich_counts = defaultdict(int)
     crisps_counts = defaultdict(int)
     snack_counts = defaultdict(int)
@@ -308,7 +349,6 @@ def api_top_items():
         crisps_counts[order.crisps] += 1
         snack_counts[order.snack] += 1
     
-    # Get top 5 in each category
     top_sandwiches = sorted(sandwich_counts.items(), key=lambda x: x[1], reverse=True)[:5]
     top_crisps = sorted(crisps_counts.items(), key=lambda x: x[1], reverse=True)[:5]
     top_snacks = sorted(snack_counts.items(), key=lambda x: x[1], reverse=True)[:5]
@@ -357,7 +397,7 @@ def admin_login():
         else:
             flash('Incorrect password', 'error')
     
-    return render_template('admin_login.html')
+    return render_template('admin_login.html', business_name=BUSINESS_NAME)
 
 
 @app.route('/admin/logout')
@@ -365,7 +405,7 @@ def admin_logout():
     """Admin logout"""
     session.pop('admin_logged_in', None)
     flash('Logged out successfully', 'success')
-    return redirect(url_for('index'))
+    return redirect(url_for('home'))
 
 
 @app.route('/admin')
@@ -374,7 +414,6 @@ def admin_dashboard():
     """Admin dashboard - manage menu items"""
     all_items = MenuItem.query.order_by(MenuItem.category, MenuItem.name).all()
     
-    # Group by category
     sandwiches = [item for item in all_items if item.category == 'sandwich']
     crisps = [item for item in all_items if item.category == 'crisps']
     snacks = [item for item in all_items if item.category == 'snack']
@@ -382,7 +421,8 @@ def admin_dashboard():
     return render_template('admin_dashboard.html',
                          sandwiches=sandwiches,
                          crisps=crisps,
-                         snacks=snacks)
+                         snacks=snacks,
+                         business_name=BUSINESS_NAME)
 
 
 @app.route('/admin/item/add', methods=['GET', 'POST'])
@@ -395,7 +435,6 @@ def admin_add_item():
         category = request.form.get('category')
         is_premium = request.form.get('is_premium') == 'on'
         
-        # Check if item already exists
         existing = MenuItem.query.filter_by(name=name).first()
         if existing:
             flash(f'Item "{name}" already exists!', 'error')
@@ -414,7 +453,7 @@ def admin_add_item():
         flash(f'Added "{name}" successfully!', 'success')
         return redirect(url_for('admin_dashboard'))
     
-    return render_template('admin_add_item.html')
+    return render_template('admin_add_item.html', business_name=BUSINESS_NAME)
 
 
 @app.route('/admin/item/edit/<int:item_id>', methods=['GET', 'POST'])
@@ -435,7 +474,7 @@ def admin_edit_item(item_id):
         flash(f'Updated "{item.name}" successfully!', 'success')
         return redirect(url_for('admin_dashboard'))
     
-    return render_template('admin_edit_item.html', item=item)
+    return render_template('admin_edit_item.html', item=item, business_name=BUSINESS_NAME)
 
 
 @app.route('/admin/item/delete/<int:item_id>', methods=['POST'])

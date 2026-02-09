@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu - {{ business_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* CSS Styles - makes the page look nice */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .offer-banner {
+            background: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .offer-banner small {
+            display: block;
+            font-size: 14px;
+            font-weight: normal;
+            margin-top: 5px;
+        }
+        
+        .error {
+            background: #f44336;
+            color: white;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .menu-section {
+            margin-bottom: 30px;
+        }
+        
+        .menu-section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .menu-item {
+            position: relative;
+        }
+        
+        .menu-item input[type="radio"] {
+            display: none;
+        }
+        
+        .menu-item label {
+            display: block;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+        
+        .menu-item label:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+        
+        .menu-item input[type="radio"]:checked + label {
+            border-color: #667eea;
+            background: #f0f4ff;
+            font-weight: bold;
+        }
+        
+        .item-name {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .item-price {
+            display: block;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .premium-badge {
+            display: inline-block;
+            background: #ff9800;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 5px;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 20px;
+        }
+        
+        .submit-btn:hover {
+            background: #5568d3;
+        }
+        
+        .submit-btn:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <span class="logo-icon">🥪</span>
+                <span>{{ business_name }}</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/menu" class="active">Menu</a></li>
+                <li><a href="/locations">Locations</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/admin">Admin</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>🥪 Our Menu</h1>
+        <p style="text-align: center; margin-bottom: 20px; font-size: 16px; color: #666;">
+            Build your perfect lunch! Select one item from each category.
+        </p>
+        
+        <div class="offer-banner">
+            Any Sandwich + Crisps + Snack = £5.00!
+            <small>*Excludes premium sandwiches</small>
+        </div>
+        
+        <!-- Show error message if user didn't select all items -->
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+        
+        <!-- The form that submits to /calculate -->
+        <form action="/calculate" method="POST">
+            
+            <!-- SANDWICHES SECTION -->
+            <div class="menu-section">
+                <h2>🥖 Choose Your Sandwich</h2>
+                <div class="menu-grid">
+                    {% for name, price in sandwiches.items() %}
+                    <div class="menu-item">
+                        <input type="radio" id="sandwich_{{ loop.index }}" name="sandwich" value="{{ name }}" required>
+                        <label for="sandwich_{{ loop.index }}">
+                            <span class="item-name">
+                                {{ name }}
+                                {% if name in premium_sandwiches %}
+                                <span class="premium-badge">PREMIUM</span>
+                                {% endif %}
+                            </span>
+                            <span class="item-price">£{{ "%.2f"|format(price) }}</span>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- CRISPS SECTION -->
+            <div class="menu-section">
+                <h2>🥔 Choose Your Crisps</h2>
+                <div class="menu-grid">
+                    {% for name, price in crisps.items() %}
+                    <div class="menu-item">
+                        <input type="radio" id="crisp_{{ loop.index }}" name="crisp" value="{{ name }}" required>
+                        <label for="crisp_{{ loop.index }}">
+                            <span class="item-name">{{ name }}</span>
+                            <span class="item-price">£{{ "%.2f"|format(price) }}</span>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- SNACKS SECTION -->
+            <div class="menu-section">
+                <h2>🍫 Choose Your Snack</h2>
+                <div class="menu-grid">
+                    {% for name, price in snacks.items() %}
+                    <div class="menu-item">
+                        <input type="radio" id="snack_{{ loop.index }}" name="snack" value="{{ name }}" required>
+                        <label for="snack_{{ loop.index }}">
+                            <span class="item-name">{{ name }}</span>
+                            <span class="item-price">£{{ "%.2f"|format(price) }}</span>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <button type="submit" class="submit-btn">Calculate My Order 🛒</button>
+        </form>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>{{ business_name }}</h3>
+                <p>Serving delicious, fresh lunches since 2020.</p>
+                <p>Making your lunch break better, one sandwich at a time.</p>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <a href="/menu">Menu</a>
+                <a href="/locations">Locations</a>
+                <a href="/about">About Us</a>
+                <a href="/history">Order History</a>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Opening Hours</h3>
+                <p>Monday - Friday: 7:00am - 6:00pm</p>
+                <p>Saturday: 8:00am - 4:00pm</p>
+                <p>Sunday: Closed</p>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Contact</h3>
+                <p>📞 020 1234 5678</p>
+                <p>📧 hello@freshbites.co.uk</p>
+                <p>📍 London, United Kingdom</p>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2026 {{ business_name }}. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

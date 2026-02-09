@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ business_name }} - {{ tagline }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <span class="logo-icon">🥪</span>
+                <span>{{ business_name }}</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="/" class="active">Home</a></li>
+                <li><a href="/menu">Menu</a></li>
+                <li><a href="/locations">Locations</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/admin">Admin</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>{{ business_name }}</h1>
+        <p>{{ tagline }}</p>
+        <a href="/menu" class="cta-button">Order Now</a>
+    </section>
+
+    <!-- Features Section -->
+    <div class="container">
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🎁</div>
+                <h3>Lunch Deal</h3>
+                <p>Get any sandwich, crisps, and snack for just £5! Available Monday to Friday.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🍞</div>
+                <h3>Fresh Ingredients</h3>
+                <p>We prepare all our sandwiches fresh daily using locally sourced, quality ingredients.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Quick Service</h3>
+                <p>Fast, friendly service to get you in and out quickly during your lunch break.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🏪</div>
+                <h3>Multiple Locations</h3>
+                <p>Visit us at any of our convenient locations across the city.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🌱</div>
+                <h3>Healthy Options</h3>
+                <p>Wide selection of fresh salads, fruits, and wholesome snacks available.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">💳</div>
+                <h3>Easy Ordering</h3>
+                <p>Order online or in-store. Quick and convenient payment options available.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div style="background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); padding: 60px 20px; text-align: center; color: white;">
+        <h2 style="font-size: 36px; margin-bottom: 20px;">Ready to Order?</h2>
+        <p style="font-size: 18px; margin-bottom: 30px; opacity: 0.95;">
+            Choose from our delicious selection and enjoy our special lunch deal!
+        </p>
+        <a href="/menu" class="cta-button">View Menu</a>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>{{ business_name }}</h3>
+                <p>Serving delicious, fresh lunches since 2020.</p>
+                <p>Making your lunch break better, one sandwich at a time.</p>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <a href="/menu">Menu</a>
+                <a href="/locations">Locations</a>
+                <a href="/about">About Us</a>
+                <a href="/history">Order History</a>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Opening Hours</h3>
+                <p>Monday - Friday: 7:00am - 6:00pm</p>
+                <p>Saturday: 8:00am - 4:00pm</p>
+                <p>Sunday: Closed</p>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Contact</h3>
+                <p>📞 020 1234 5678</p>
+                <p>📧 hello@freshbites.co.uk</p>
+                <p>📍 London, United Kingdom</p>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2026 {{ business_name }}. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
