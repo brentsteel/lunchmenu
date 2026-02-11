@@ -18,6 +18,7 @@ sandwiches = {
     "BLT": 3.50,
     "Egg Mayo": 3.50,
     "Cheese & Pickle": 3.50,
+    "Chicken & Bacon": 4.50, # Premium item - doesn't qualify for offer
     "Prawn Mayo": 4.50,  # Premium item - doesn't qualify for offer
     "Steak & Onion": 4.50  # Premium item - doesn't qualify for offer
 }
@@ -30,23 +31,25 @@ crisps = {
     "BBQ": 1.50,
     "Sour Cream": 1.50,
     "Paprika": 1.50,
-    "Spicy Chili": 1.50
+    "Spicy Chili": 1.50,
+    "Chilli and Lime Corn Chips": 1.50
 }
 
 snacks = {
     "Apple": 1.00,
     "Banana": 1.00,
-    "Chocolate Bar": 2.00,
+    "Kit Kat": 2.00,
     "Granola Bar": 2.00,
     "Cookie": 1.50,
-    "Brownie": 2.00,
+    "Mini Egg Brownie": 2.00,
     "Fruit Pot": 2.50,
-    "Yogurt": 2.00
+    "Yogurt": 2.00,
+    "Slice of homemade cake": 3.00 # Premium item - doesn't qualify for offer
 }
 
 # LISTS: Items that DON'T qualify for the lunch offer
 # These are "premium" items
-premium_sandwiches = ["Prawn Mayo", "Steak & Onion"]
+premium_sandwiches = ["Prawn Mayo", "Steak & Onion", "Chicken & Bacon", "Slice of homemade cake"]
 
 # FUNCTION: A reusable block of code that performs a task
 def display_menu(menu_dict, category_name):
