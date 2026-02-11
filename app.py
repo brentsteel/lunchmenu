@@ -163,13 +163,23 @@ def home():
 @app.route('/menu')
 def menu():
     """Menu page - display the menu selection form"""
-    sandwiches, crisps, snacks, premium_sandwiches = get_menu_items()
-    return render_template('menu.html', 
-                         sandwiches=sandwiches,
-                         crisps=crisps,
-                         snacks=snacks,
-                         premium_sandwiches=premium_sandwiches,
-                         business_name=BUSINESS_NAME)
+    try:
+        sandwiches, crisps, snacks, premium_sandwiches = get_menu_items()
+        return render_template('menu.html', 
+                             sandwiches=sandwiches,
+                             crisps=crisps,
+                             snacks=snacks,
+                             premium_sandwiches=premium_sandwiches,
+                             business_name=BUSINESS_NAME)
+    except Exception as e:
+        print(f"Menu error: {e}")
+        # Initialize database if needed
+        try:
+            db.create_all()
+            initialize_default_menu()
+            return redirect(url_for('menu'))
+        except:
+            return "Database initialization required. Please contact administrator.", 500
 
 
 @app.route('/locations')
@@ -412,17 +422,29 @@ def admin_logout():
 @admin_required
 def admin_dashboard():
     """Admin dashboard - manage menu items"""
-    all_items = MenuItem.query.order_by(MenuItem.category, MenuItem.name).all()
-    
-    sandwiches = [item for item in all_items if item.category == 'sandwich']
-    crisps = [item for item in all_items if item.category == 'crisps']
-    snacks = [item for item in all_items if item.category == 'snack']
-    
-    return render_template('admin_dashboard.html',
-                         sandwiches=sandwiches,
-                         crisps=crisps,
-                         snacks=snacks,
-                         business_name=BUSINESS_NAME)
+    try:
+        all_items = MenuItem.query.order_by(MenuItem.category, MenuItem.name).all()
+        
+        sandwiches = [item for item in all_items if item.category == 'sandwich']
+        crisps = [item for item in all_items if item.category == 'crisps']
+        snacks = [item for item in all_items if item.category == 'snack']
+        
+        return render_template('admin_dashboard.html',
+                             sandwiches=sandwiches,
+                             crisps=crisps,
+                             snacks=snacks,
+                             business_name=BUSINESS_NAME)
+    except Exception as e:
+        # If database tables don't exist, create them
+        print(f"Admin dashboard error: {e}")
+        try:
+            db.create_all()
+            initialize_default_menu()
+            flash('Database initialized. Please try again.', 'success')
+            return redirect(url_for('admin_dashboard'))
+        except Exception as e2:
+            flash(f'Database error: {str(e2)}. Please contact support.', 'error')
+            return redirect(url_for('home'))
 
 
 @app.route('/admin/item/add', methods=['GET', 'POST'])
@@ -491,8 +513,14 @@ def admin_delete_item(item_id):
 
 # Create database tables and initialize menu
 with app.app_context():
-    db.create_all()
-    initialize_default_menu()
+    try:
+        db.create_all()
+        print("Database tables created successfully")
+        initialize_default_menu()
+        print("Default menu initialized")
+    except Exception as e:
+        print(f"Database initialization error: {e}")
+        # Continue anyway - tables might already exist
 
 
 # Run the application
